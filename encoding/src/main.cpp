@@ -1,19 +1,38 @@
-//Copyright (C) 2011  Carl Rogers
-//Released under MIT License
-//license available in LICENSE file, or at http://www.opensource.org/licenses/mit-license.php
+#include "MidiFile.h"
+#include "Options.h"
+#include <iostream>
+#include <iomanip>
 
-#include"cnpy.h"
-#include<complex>
-#include<cstdlib>
-#include<algorithm>
-#include<cstring>
-#include<iomanip>
-#include<stdint.h>
-#include<stdexcept>
-#include <regex>
+using namespace std;
+using namespace smf;
+
+int main(int argc, char** argv) {
+
+   MidiFile midifile("./data/classical.midi");
 
 
-int main(){
-   std::cout << "IT WORKS" << std::endl;
+
+   midifile.doTimeAnalysis();
+   midifile.linkNotePairs();
+
+   int tracks = midifile.getTrackCount();
+   cout << "TPQ: " << midifile.getTicksPerQuarterNote() << endl;
+   if (tracks > 1) cout << "TRACKS: " << tracks << endl;
+   for (int track=0; track<tracks; track++) {
+      if (tracks > 1) cout << "\nTrack " << track << endl;
+      cout << "Tick\tSeconds\tDur\tMessage" << endl;
+      for (int event=0; event<midifile[track].size(); event++) {
+         cout << dec << midifile[track][event].tick;
+         cout << '\t' << dec << midifile[track][event].seconds;
+         cout << '\t';
+         if (midifile[track][event].isNoteOn())
+            cout << midifile[track][event].getDurationInSeconds();
+
+         for (int i=0; i<midifile[track][event].size(); i++)
+            cout << (int)midifile[track][event][i] << ' ';
+         cout << endl;
+      }
+   }
+
    return 0;
 }

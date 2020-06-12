@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # compile cpp binaries
-cd encoding/build
+mkdir ./encoding/build
+cd ./encoding/build
 cmake ..
 cd .. && make
 

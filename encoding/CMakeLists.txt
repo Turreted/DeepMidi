@@ -12,7 +12,8 @@ project( deepmidi )
 include_directories( ./include ./src ./libs/midifile/include ./libs/cnpy )
 
 # target
-add_executable( binary ./src/main.cpp )
+add_executable( binary ./src/decoder.cpp )
+# add_executable( binary ./src/main.cpp )
 
 # external libs
 
