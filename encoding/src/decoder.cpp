@@ -5,11 +5,19 @@
 #include <string>
 #include <complex>
 
+#include "decoder.h"
 
-int shape_y;
-int shape_x;
 
-void reconstructMidiFile(int ** midiFileArray){
+Decoder::Decoder(std::string fileName){
+
+    cnpy::NpyArray arr = cnpy::npy_load(fileName);
+    this->loadedData = arr.data<short int>();
+
+    this->shape_y = arr.shape[0];
+    this->shape_x = arr.shape[1];
+}
+
+smf::MidiFile * Decoder::reconstructMidiFile(int ** midiFileArray){
     smf::MidiFile midifile;
     
     int track      = 0;
@@ -18,12 +26,11 @@ void reconstructMidiFile(int ** midiFileArray){
 
 
     midifile.addTimbre(track, 0, channel, instrument);
-    std::cout << midifile.getTPQ() << std::endl;
 
     // measured by 32nd note
     int TPQ = 8;
     midifile.setTicksPerQuarterNote(8);
-    std::cout << midifile.getTPQ() << std::endl;
+
     //velocity is constant
     int velocity = 100;
     //
@@ -52,16 +59,17 @@ void reconstructMidiFile(int ** midiFileArray){
 
     midifile.sortTracks();  // Need to sort tracks since added events are
                            // appended to track in random tick order.
-    midifile.write("pleaseGod.midi");
+    return &midifile;
 }
 
+void Decoder::save(smf::MidiFile &midifile, std::string fileName){
+    midifile.write(fileName);
+}
 
 
 // Converts the cnpy object into a 2d array of integers.
 // This function assumes that the array is 2d
-int ** typecastInteger(cnpy::NpyArray &arr){
-
-    std::complex<double>* loadedData = arr.data<std::complex<double>>();
+int ** Decoder::typecastInteger(cnpy::NpyArray &arr){
 
     int ** integerArray = new int*[arr.shape[0]];
     
@@ -70,25 +78,9 @@ int ** typecastInteger(cnpy::NpyArray &arr){
 
         for (int x = 0; x < arr.shape[1]; ++x){
             int loadedDataIndex = (y * shape_x) + x;
-            integerArray[y][x] = real(loadedData[loadedDataIndex]);
+            integerArray[y][x] = loadedData[loadedDataIndex];
         }
     }
 
     return integerArray;
-}
-
-int main(int argc, char** argv){
-
-
-    std::string arrayName = "arr1.npy";
-
-    cnpy::NpyArray arr = cnpy::npy_load(arrayName);
-    std::complex<double>* loaded_data = arr.data<std::complex<double>>();
-
-    shape_y = arr.shape[0];
-    shape_x = arr.shape[1];
-
-    int ** midiFileArray = typecastInteger(arr);
-    reconstructMidiFile(midiFileArray);
-
 }

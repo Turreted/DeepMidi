@@ -7,13 +7,12 @@
 
 class Encoder{
 private:
-    MidiFile midifile; // yay
+    stf::MidiFile midifile;
 
 public:
-    Encoder(string fileName);
+    Encoder(std::string fileName);
 
     void encode() {};
     void format() {};
-    void serialize(string fileName) {};
-    void printMidiData(int len=1000) {};
+    void serialize(std::string fileName) {};
 };

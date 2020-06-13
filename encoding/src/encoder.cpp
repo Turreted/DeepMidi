@@ -7,11 +7,10 @@
 #include <complex>
 #include <cstdlib>
 
-using namespace std;
-using namespace smf;
 
 // We want there to be 4 ticks per quarter note
 const static int TQP = 8;
+int midiInputRange = 127;
 
 // TODO: Seralize by converting to numpy array
 // TODO: Convert array back to midi
@@ -31,14 +30,14 @@ int roundRange(int inp, int min, int max){
 
 
 int main(int argc, char** argv) {
-    string midiData = "./data/classical.midi";
+    std::string midiData = "./data/classical.midi";
     //string midiData = "./data/dylan.mid";
 
-    MidiFile midifile(midiData);
+    smf::MidiFile midifile(midiData);
     midifile.joinTracks();
    
-    MidiEvent* mev;
-    MidiEventList track = midifile[0];
+    smf::MidiEvent* mev;
+    smf::MidiEventList track = midifile[0];
 
     // Convert the midi data to absolute ticks. This means that time is measured
     // relative to the beginning of the file, not the previous event
@@ -58,7 +57,6 @@ int main(int argc, char** argv) {
     double conversionRate = (oldTickLength / totalTicks);
 
     // Reduce the file into an array
-    int midiInputRange = 127;
     int MidiFileArray[totalTicks + 100][midiInputRange];
 
     // currentick tracks where we are in the MidiFileArray
@@ -101,7 +99,7 @@ int main(int argc, char** argv) {
             // If the midievent tick is higher than out current tick value, we should copy
             // the previous array/eventlist until the ticks are even 
             while (currentTick < mevTickValue){
-                for (int i = 0; i < 127; i++){
+                for (int i = 0; i < midiInputRange; i++){
                     MidiFileArray[currentTick + 1][i] = MidiFileArray[currentTick][i];
                 }
                 currentTick++;
@@ -112,15 +110,16 @@ int main(int argc, char** argv) {
    }
 
 
-    vector <complex<double>> data(currentTick * 127);
+    std::vector<short int> data(currentTick * midiInputRange);
+
     for(int i = 0; i < currentTick; i++) {
-        for (int j = 0; j < 127; j++){
-            data[i*127 + j] = std::complex<double>(MidiFileArray[i][j]);
+        for (int j = 0; j < midiInputRange; j++){
+            data[i*midiInputRange + j] = MidiFileArray[i][j];
         }
     }
 
 
-    cnpy::npy_save("arr1.npy", &data[0], {currentTick, 127}, "w");
+    cnpy::npy_save("arr1.npy", &data[0], {currentTick, midiInputRange}, "w");
 }
 
 
