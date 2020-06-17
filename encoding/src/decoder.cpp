@@ -17,7 +17,7 @@ Decoder::Decoder(std::string fileName){
     this->shape_x = arr.shape[1];
 }
 
-smf::MidiFile * Decoder::reconstructMidiFile(int ** midiFileArray){
+smf::MidiFile Decoder::reconstructMidiFile(int ** midiFileArray){
     smf::MidiFile midifile;
     
     int track      = 0;
@@ -38,8 +38,8 @@ smf::MidiFile * Decoder::reconstructMidiFile(int ** midiFileArray){
 
 
     // go column by column
-    for (int note = 0; note < shape_x; ++note){
-        for (int tick = 0; tick < shape_y; ++tick){
+    for (int note = 0; note <= shape_x; ++note){
+        for (int tick = 0; tick <= shape_y; ++tick){
 
             if (midiFileArray[tick][note] != currentState){
 
@@ -59,28 +59,37 @@ smf::MidiFile * Decoder::reconstructMidiFile(int ** midiFileArray){
 
     midifile.sortTracks();  // Need to sort tracks since added events are
                            // appended to track in random tick order.
-    return &midifile;
-}
-
-void Decoder::save(smf::MidiFile &midifile, std::string fileName){
-    midifile.write(fileName);
+    return midifile;
 }
 
 
 // Converts the cnpy object into a 2d array of integers.
 // This function assumes that the array is 2d
-int ** Decoder::typecastInteger(cnpy::NpyArray &arr){
+int** Decoder::typecastInteger(cnpy::NpyArray &arr){
 
-    int ** integerArray = new int*[arr.shape[0]];
-    
-    for (int y = 0; y < arr.shape[0]; ++y){
+    int ** integerArray = new int*[shape_y];
+    int* data = arr.data<int>();
+
+    for (int y = 0; y <= shape_y; y++){
         integerArray[y] = new int[shape_x];
 
-        for (int x = 0; x < arr.shape[1]; ++x){
+        for (int x = 0; x <= shape_x; x++){
             int loadedDataIndex = (y * shape_x) + x;
-            integerArray[y][x] = loadedData[loadedDataIndex];
+            integerArray[y][x] = data[loadedDataIndex];
         }
     }
 
     return integerArray;
 }
+
+int main(){
+    cnpy::NpyArray arr = cnpy::npy_load("arr1.npy");
+    Decoder bob("arr1.npy");
+    
+    int** MidiFileArray = bob.typecastInteger(arr);
+    smf::MidiFile file = bob.reconstructMidiFile(MidiFileArray);
+
+    file.write("pleasegod.midi");
+}
+
+

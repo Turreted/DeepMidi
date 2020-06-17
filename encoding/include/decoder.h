@@ -16,7 +16,7 @@ class Decoder{
 
     public:
         Decoder(std::string fileName);
-        smf::MidiFile * reconstructMidiFile(int ** midiFileArray);
+        smf::MidiFile reconstructMidiFile(int ** midiFileArray);
         int ** typecastInteger(cnpy::NpyArray &arr);
         void save(smf::MidiFile &midifile, std::string fileName);
 };

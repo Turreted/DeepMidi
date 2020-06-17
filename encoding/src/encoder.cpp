@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
    }
 
 
-    std::vector<short int> data(currentTick * midiInputRange);
+    std::vector<int> data(currentTick * midiInputRange);
 
     for(int i = 0; i < currentTick; i++) {
         for (int j = 0; j < midiInputRange; j++){
@@ -118,9 +118,6 @@ int main(int argc, char** argv) {
         }
     }
 
-
     cnpy::npy_save("arr1.npy", &data[0], {currentTick, midiInputRange}, "w");
 }
-
-
 
