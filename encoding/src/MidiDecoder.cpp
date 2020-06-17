@@ -7,21 +7,33 @@
 #include <complex>
 #include <cstdlib>
 
-
-// We want there to be 4 ticks per quarter note
-const static int TQP = 8;
-int midiInputRange = 127;
-
-// TODO: Seralize by converting to numpy array
-// TODO: Convert array back to midi
+#include "MidiDecoder.h"
 
 
+MidiDecoder::MidiDecoder(){}
 
-int main(int argc, char** argv) {
+void MidiDecoder::load(const std::string& fileName){
     std::string midiData = "./data/classical.midi";
-    //string midiData = "./data/dylan.mid";
+    MidiFileArray = createMidiArray(midiData);
+}
 
-    smf::MidiFile midifile(midiData);
+void MidiDecoder::save(const std::string& fileName){
+
+    std::vector<int> data(currentTick * midiInputRange);
+
+    for(int i = 0; i < currentTick; i++) {
+        for (int j = 0; j < midiInputRange; j++){
+            data[i*midiInputRange + j] = MidiFileArray[i][j];
+        }
+    }
+
+    cnpy::npy_save(fileName, &data[0], {currentTick, midiInputRange}, "w");
+}
+
+
+int** MidiDecoder::createMidiArray(const std::string& fileName){
+
+    smf::MidiFile midifile(fileName);
     midifile.joinTracks();
    
     smf::MidiEvent* mev;
@@ -45,12 +57,16 @@ int main(int argc, char** argv) {
     double conversionRate = (oldTickLength / totalTicks);
 
     // Reduce the file into an array
-    int MidiFileArray[totalTicks + 100][midiInputRange];
+    MidiFileArray = new int*[totalTicks + buffer];
+    
+    for (int y = 0; y <= totalTicks + buffer; y++){
+        MidiFileArray[y] = new int[midiInputRange];
+    }
 
     // currentick tracks where we are in the MidiFileArray
     // it is moved up once a midiEvent tick value is greater
     // than the currentTick value
-    int currentTick = 0;
+    currentTick = 0;
 
     for (int event = 0; event < track.size(); event++) {
 
@@ -85,27 +101,19 @@ int main(int argc, char** argv) {
         } else {
 
             // If the midievent tick is higher than out current tick value, we should copy
-            // the previous array/eventlist until the ticks are even 
-            while (currentTick < mevTickValue){
+            // the previous array/eventlist until the ticks are even becuase nothing has changed
+            while (currentTick < mevTickValue) {
                 for (int i = 0; i < midiInputRange; i++){
                     MidiFileArray[currentTick + 1][i] = MidiFileArray[currentTick][i];
                 }
                 currentTick++;
             }
-            // reset the midi event with the correct tick value 
+            // Once we've reached the tick value of the next midi event,
+            // reset to the midi event with the current tick value 
             event--;
         }
    }
 
-
-    std::vector<int> data(currentTick * midiInputRange);
-
-    for(int i = 0; i < currentTick; i++) {
-        for (int j = 0; j < midiInputRange; j++){
-            data[i*midiInputRange + j] = MidiFileArray[i][j];
-        }
-    }
-
-    cnpy::npy_save("arr1.npy", &data[0], {currentTick, midiInputRange}, "w");
+   return MidiFileArray;
 }
 

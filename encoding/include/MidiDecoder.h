@@ -1,3 +1,6 @@
+#ifndef MIDIDECODER_H
+#define MIDIDECODER_H
+
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -5,14 +8,24 @@
 #include "MidiFile.h"
 
 
-class Encoder{
+class MidiDecoder{
 private:
-    stf::MidiFile midifile;
+    // Midi constants
+    const static int TQP = 8;
+    const static int midiInputRange = 127;
+    const static int buffer = 128;
+
+    int currentTick;
+
+    int** MidiFileArray;
+    int** createMidiArray(const std::string& fileName);
+
 
 public:
-    Encoder(std::string fileName);
+    MidiDecoder();
 
-    void encode() {};
-    void format() {};
-    void serialize(std::string fileName) {};
+    void load(const std::string& fileName);
+    void save(const std::string& fileName);
 };
+
+#endif

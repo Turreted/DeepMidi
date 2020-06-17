@@ -97,7 +97,7 @@ int** MidiEncoder::typecastInteger(cnpy::NpyArray* arr){
 
 
 int main(int argc, char** argv){
-    MidiEncoder bob("arr1.npy");
+    MidiEncoder bob("arr2.npy");
     bob.save("pleasegod.midi");
     return 0;
 }
