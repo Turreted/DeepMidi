@@ -16,18 +16,6 @@ int midiInputRange = 127;
 // TODO: Convert array back to midi
 
 
-int roundRange(int inp, int min, int max){
-    
-    // determine if a number is closer to the given min or max
-    
-   if ((double) inp >= min + ((max - min) / 2)){
-       return (int) max;
-   } else {
-       return (int) min;
-   }
-}
-
-
 
 int main(int argc, char** argv) {
     std::string midiData = "./data/classical.midi";

@@ -5,31 +5,44 @@
 #include <string>
 #include <complex>
 
-#include "decoder.h"
+#include "MidiEncoder.h"
 
 
-Decoder::Decoder(std::string fileName){
-
-    cnpy::NpyArray arr = cnpy::npy_load(fileName);
-    this->loadedData = arr.data<short int>();
-
-    this->shape_y = arr.shape[0];
-    this->shape_x = arr.shape[1];
+MidiEncoder::MidiEncoder(const std::string& fileName){
+    load(fileName);
 }
 
-smf::MidiFile Decoder::reconstructMidiFile(int ** midiFileArray){
-    smf::MidiFile midifile;
+void MidiEncoder::load(const std::string& fileName){
+    
+    cnpy::NpyArray cnpyArray = cnpy::npy_load(fileName);
+    cnpy::NpyArray* arr = &cnpyArray;
+
+    shape_y = arr->shape[0];
+    shape_x = arr->shape[1];
+
+    // Deserialize Midi Array
+    int** midiFileArray = typecastInteger(arr);
+    midifile = reconstructMidiFile(midiFileArray);
+}
+
+void MidiEncoder::save(const std::string& fileName){
+    midifile.write(fileName);
+}
+
+
+smf::MidiFile MidiEncoder::reconstructMidiFile(int** midiFileArray){
+    smf::MidiFile midiConstructor;
     
     int track      = 0;
     int channel    = 0;
     int instrument = 0; // Defaults to 0, the piano
 
 
-    midifile.addTimbre(track, 0, channel, instrument);
+    midiConstructor.addTimbre(track, 0, channel, instrument);
 
     // measured by 32nd note
     int TPQ = 8;
-    midifile.setTicksPerQuarterNote(8);
+    midiConstructor.setTicksPerQuarterNote(8);
 
     //velocity is constant
     int velocity = 100;
@@ -45,9 +58,9 @@ smf::MidiFile Decoder::reconstructMidiFile(int ** midiFileArray){
 
                 // Check to see if a note is being turned on or off
                 if (currentState == 0){
-                    midifile.addNoteOn(track, tick, channel, note, velocity);
+                    midiConstructor.addNoteOn(track, tick, channel, note, velocity);
                 } else if (currentState == 1){
-                    midifile.addNoteOff(track, tick, channel, note);
+                    midiConstructor.addNoteOff(track, tick, channel, note);
                 }
                 // Set currentState to note on or off
                 currentState = midiFileArray[tick][note];
@@ -57,18 +70,18 @@ smf::MidiFile Decoder::reconstructMidiFile(int ** midiFileArray){
         currentState = 0;
     }
 
-    midifile.sortTracks();  // Need to sort tracks since added events are
+    midiConstructor.sortTracks();  // Need to sort tracks since added events are
                            // appended to track in random tick order.
-    return midifile;
+    return midiConstructor;
 }
 
 
 // Converts the cnpy object into a 2d array of integers.
 // This function assumes that the array is 2d
-int** Decoder::typecastInteger(cnpy::NpyArray &arr){
+int** MidiEncoder::typecastInteger(cnpy::NpyArray* arr){
 
     int ** integerArray = new int*[shape_y];
-    int* data = arr.data<int>();
+    int* data = arr->data<int>();
 
     for (int y = 0; y <= shape_y; y++){
         integerArray[y] = new int[shape_x];
@@ -82,14 +95,9 @@ int** Decoder::typecastInteger(cnpy::NpyArray &arr){
     return integerArray;
 }
 
-int main(){
-    cnpy::NpyArray arr = cnpy::npy_load("arr1.npy");
-    Decoder bob("arr1.npy");
-    
-    int** MidiFileArray = bob.typecastInteger(arr);
-    smf::MidiFile file = bob.reconstructMidiFile(MidiFileArray);
 
-    file.write("pleasegod.midi");
+int main(int argc, char** argv){
+    MidiEncoder bob("arr1.npy");
+    bob.save("pleasegod.midi");
+    return 0;
 }
-
-
