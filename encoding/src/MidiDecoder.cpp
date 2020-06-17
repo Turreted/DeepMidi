@@ -10,11 +10,8 @@
 #include "MidiDecoder.h"
 
 
-MidiDecoder::MidiDecoder(){}
-
 void MidiDecoder::load(const std::string& fileName){
-    std::string midiData = "./data/classical.midi";
-    MidiFileArray = createMidiArray(midiData);
+    MidiFileArray = createMidiArray(fileName);
 }
 
 void MidiDecoder::save(const std::string& fileName){
@@ -51,9 +48,9 @@ int** MidiDecoder::createMidiArray(const std::string& fileName){
 
     int totalQuarterNotes = oldTickLength / midifile.getTicksPerQuarterNote();
 
-    // we want there to only be a single tick per 16th note
+    // we want there to only be a single tick per 64th note
     // TODO: that this needs to be specified in the new midi header
-    int totalTicks = totalQuarterNotes * 8;
+    int totalTicks = totalQuarterNotes * TPQ;
     double conversionRate = (oldTickLength / totalTicks);
 
     // Reduce the file into an array

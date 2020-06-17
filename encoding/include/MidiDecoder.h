@@ -11,7 +11,7 @@
 class MidiDecoder{
 private:
     // Midi constants
-    const static int TQP = 8;
+    const static int TPQ = 16;
     const static int midiInputRange = 127;
     const static int buffer = 128;
 
@@ -22,7 +22,6 @@ private:
 
 
 public:
-    MidiDecoder();
 
     void load(const std::string& fileName);
     void save(const std::string& fileName);

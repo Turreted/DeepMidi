@@ -7,11 +7,6 @@
 
 #include "MidiEncoder.h"
 
-
-MidiEncoder::MidiEncoder(const std::string& fileName){
-    load(fileName);
-}
-
 void MidiEncoder::load(const std::string& fileName){
     
     cnpy::NpyArray cnpyArray = cnpy::npy_load(fileName);
@@ -41,8 +36,7 @@ smf::MidiFile MidiEncoder::reconstructMidiFile(int** midiFileArray){
     midiConstructor.addTimbre(track, 0, channel, instrument);
 
     // measured by 32nd note
-    int TPQ = 8;
-    midiConstructor.setTicksPerQuarterNote(8);
+    midiConstructor.setTicksPerQuarterNote(TPQ);
 
     //velocity is constant
     int velocity = 100;
@@ -93,11 +87,4 @@ int** MidiEncoder::typecastInteger(cnpy::NpyArray* arr){
     }
 
     return integerArray;
-}
-
-
-int main(int argc, char** argv){
-    MidiEncoder bob("arr2.npy");
-    bob.save("pleasegod.midi");
-    return 0;
 }

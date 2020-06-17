@@ -2,26 +2,39 @@
 cmake_minimum_required( VERSION 3.0 )
 
 # project name
-project( deepmidi )
+project( DeepMidi )
 
 # flags
 
 # files
+set(SRCS
+    src/MidiEncoder.cpp
+    src/MidiDecoder.cpp
+    src/main.cpp
+)
+
+set(HDRS
+    include/MidiEncoder.cpp
+    include/MidiDecoder.cpp
+)
 
 # include
 include_directories( ./include ./src ./libs/midifile/include ./libs/cnpy )
 
-# target
-add_executable( binary ./src/main.cpp )
-# add_executable( binary ./src/main.cpp )
+# add helper classes as static libraries
+add_library(MidiDecoder STATIC ./src/MidiDecoder.cpp)
+add_library(MidiEncoder STATIC ./src/MidiEncoder.cpp)
 
-# external libs
+# add main executable
+add_executable( main ./src/main)
 
-# midifile library
+# link Public Libraries
 add_subdirectory( ./libs/midifile )
-target_link_libraries( binary midifile )
+target_link_libraries( MidiDecoder PUBLIC midifile )
 
-# cnpy library
 add_subdirectory( ./libs/cnpy )
-target_link_libraries( binary cnpy )
+target_link_libraries( MidiDecoder PUBLIC cnpy )
 
+# link static Libraries
+target_link_libraries( main MidiDecoder )
+target_link_libraries( main MidiEncoder )
