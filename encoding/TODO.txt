@@ -1,0 +1,3 @@
+Make the error recognition not shit
+Add python bindings from c++ libs
+make the actual neural network
