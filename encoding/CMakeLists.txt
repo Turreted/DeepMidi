@@ -1,8 +1,12 @@
 # cmake version to be used
 cmake_minimum_required( VERSION 3.0 )
 
+# define c++ version
+set_property(TARGET tgt PROPERTY CXX_STANDARD 11)
+
 # project name
 project( DeepMidi )
+
 
 # flags
 
