@@ -14,11 +14,9 @@ bool fileExists(const char* fileBuf){
 
 int main(int argc, char** argv){
     MidiDecoder mididecoder;
-    
-    //std::string inFile = std::string(argc[1]);
 
     if (argc < 3){
-        std::cout << "format: ./mididecoder inputFile.midi outputFile.npy" << std::endl;
+        std::cout << "format: ./midiDecoder inputFile.npy outputFile.midi" << std::endl;
         return 1;
     }
 

@@ -34,8 +34,8 @@ add_library(MidiDecoder STATIC ./src/MidiDecoder.cpp)
 add_library(MidiEncoder STATIC ./src/MidiEncoder.cpp)
 
 # add main executables
-add_executable( decoder ./src/decoder.cpp)
-add_executable( encoder ./src/encoder.cpp)
+add_executable( midiDecoder ./src/decoder.cpp)
+add_executable( midiEncoder ./src/encoder.cpp)
 
 # link Public Libraries
 add_subdirectory( ./libs/midifile )
@@ -47,5 +47,5 @@ target_link_libraries( MidiDecoder PUBLIC cnpy )
 target_link_libraries( MidiEncoder PUBLIC cnpy )
 
 # link static Libraries
-target_link_libraries( decoder MidiDecoder )
-target_link_libraries( encoder MidiEncoder )
+target_link_libraries( midiDecoder MidiDecoder )
+target_link_libraries( midiEncoder MidiEncoder )

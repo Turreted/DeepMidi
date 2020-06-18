@@ -2,29 +2,31 @@
 #define MIDIDECODER_H
 
 #include <iostream>
-#include <iomanip>
 #include <string>
 
 #include "MidiFile.h"
+#include"cnpy.h"
 
 
 class MidiDecoder{
-private:
-    // Midi constants
-    const static int TPQ = 16;
-    const static int midiInputRange = 127;
-    const static int buffer = 128;
+    private:
+        // Midi constants
+        const static int TPQ = 16;
+        const static int midiInputRange = 127;
+        const static int buffer = 128;
 
-    int currentTick;
+        // dimensions of midi array
+        int shape_y;
+        int shape_x;
 
-    int** MidiFileArray;
-    int** createMidiArray(const std::string& fileName);
+        smf::MidiFile midifile;
 
+        smf::MidiFile reconstructMidiFile(int** midiFileArray);
+        int** typecastInteger(cnpy::NpyArray* arr);
 
-public:
-
-    void load(const std::string& fileName);
-    void save(const std::string& fileName);
+    public:
+        void load(const std::string& filename);
+        void save(const std::string& fileName);
 };
 
 #endif

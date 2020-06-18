@@ -3,114 +3,88 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
-#include <vector>
 #include <complex>
-#include <cstdlib>
 
 #include "MidiDecoder.h"
 
-
 void MidiDecoder::load(const std::string& fileName){
-    MidiFileArray = createMidiArray(fileName);
+    
+    cnpy::NpyArray cnpyArray = cnpy::npy_load(fileName);
+    cnpy::NpyArray* arr = &cnpyArray;
+
+    shape_y = arr->shape[0];
+    shape_x = arr->shape[1];
+
+    // Deserialize Midi Array
+    int** midiFileArray = typecastInteger(arr);
+    midifile = reconstructMidiFile(midiFileArray);
 }
 
 void MidiDecoder::save(const std::string& fileName){
-
-    std::vector<int> data(currentTick * midiInputRange);
-
-    for(int i = 0; i < currentTick; i++) {
-        for (int j = 0; j < midiInputRange; j++){
-            data[i*midiInputRange + j] = MidiFileArray[i][j];
-        }
-    }
-
-    cnpy::npy_save(fileName, &data[0], {currentTick, midiInputRange}, "w");
+    midifile.write(fileName);
 }
 
 
-int** MidiDecoder::createMidiArray(const std::string& fileName){
-
-    smf::MidiFile midifile(fileName);
-    midifile.joinTracks();
-   
-    smf::MidiEvent* mev;
-    smf::MidiEventList track = midifile[0];
-
-    // Convert the midi data to absolute ticks. This means that time is measured
-    // relative to the beginning of the file, not the previous event
-    if (midifile.isAbsoluteTicks() < 1) {
-        midifile.absoluteTicks();
-    }
-
-    // find the total tick length by finding the ticks of the final event
-    mev = &track[track.size() - 2];
-    int oldTickLength = mev->tick;
-
-    int totalQuarterNotes = oldTickLength / midifile.getTicksPerQuarterNote();
-
-    // we want there to only be a single tick per 64th note
-    // TODO: that this needs to be specified in the new midi header
-    int totalTicks = totalQuarterNotes * TPQ;
-    double conversionRate = (oldTickLength / totalTicks);
-
-    // Reduce the file into an array
-    MidiFileArray = new int*[totalTicks + buffer];
+smf::MidiFile MidiDecoder::reconstructMidiFile(int** midiFileArray){
+    smf::MidiFile midiConstructor;
     
-    for (int y = 0; y <= totalTicks + buffer; y++){
-        MidiFileArray[y] = new int[midiInputRange];
+    int track      = 0;
+    int channel    = 0;
+    int instrument = 0; // Defaults to 0, the piano
+
+
+    midiConstructor.addTimbre(track, 0, channel, instrument);
+
+    // measured by 32nd note
+    midiConstructor.setTicksPerQuarterNote(TPQ);
+
+    //velocity is constant
+    int velocity = 100;
+    //
+    int currentState = 0;
+
+
+    // go column by column
+    for (int note = 0; note <= shape_x; ++note){
+        for (int tick = 0; tick <= shape_y; ++tick){
+
+            if (midiFileArray[tick][note] != currentState){
+
+                // Check to see if a note is being turned on or off
+                if (currentState == 0){
+                    midiConstructor.addNoteOn(track, tick, channel, note, velocity);
+                } else if (currentState == 1){
+                    midiConstructor.addNoteOff(track, tick, channel, note);
+                }
+                // Set currentState to note on or off
+                currentState = midiFileArray[tick][note];
+            }
+        }
+        // Turn currentState to note off
+        currentState = 0;
     }
 
-    // currentick tracks where we are in the MidiFileArray
-    // it is moved up once a midiEvent tick value is greater
-    // than the currentTick value
-    currentTick = 0;
-
-    for (int event = 0; event < track.size(); event++) {
-
-        mev = &track[event];
-        int mevTickValue = mev->tick / conversionRate;
-
-        if (currentTick <= mevTickValue && mevTickValue < currentTick + 1){
-
-            // Check if midi event is to spawn a note, remove a note, or metadata
-            int binaryCommand = (int)(*mev)[0];
-
-            // Define pitch and velocity values
-            int pitchValue    = (int)(*mev)[1];
-            int velocityValue = (int)(*mev)[2];
-
-            // determine if the given midi event is closer in time to the
-            // currentTick or the next tick
-            if (mevTickValue >= ((double) currentTick) + 0.5){
-                mevTickValue = currentTick + 1;
-            } else {
-                mevTickValue = currentTick;
-            }
-
-            // Change the values in the array to 1 (on) or 0 (off)
-            // depending on the given input
-            if (mev->isNoteOn() == 1) {
-                MidiFileArray[mevTickValue][pitchValue] = 1;
-            } else if (mev->isNoteOff() == 1){
-                MidiFileArray[mevTickValue][pitchValue] = 0;
-            }
-
-        } else {
-
-            // If the midievent tick is higher than out current tick value, we should copy
-            // the previous array/eventlist until the ticks are even becuase nothing has changed
-            while (currentTick < mevTickValue) {
-                for (int i = 0; i < midiInputRange; i++){
-                    MidiFileArray[currentTick + 1][i] = MidiFileArray[currentTick][i];
-                }
-                currentTick++;
-            }
-            // Once we've reached the tick value of the next midi event,
-            // reset to the midi event with the current tick value 
-            event--;
-        }
-   }
-
-   return MidiFileArray;
+    midiConstructor.sortTracks();  // Need to sort tracks since added events are
+                           // appended to track in random tick order.
+    return midiConstructor;
 }
 
+
+// Converts the cnpy object into a 2d array of integers.
+// This function assumes that the array is 2d
+int** MidiDecoder::typecastInteger(cnpy::NpyArray* arr){
+
+    int ** integerArray = new int*[shape_y];
+    int* data = arr->data<int>();
+
+    for (int y = 0; y <= shape_y; y++){
+        integerArray[y] = new int[shape_x];
+
+        for (int x = 0; x <= shape_x; x++){
+            int loadedDataIndex = (y * shape_x) + x;
+            integerArray[y][x] = data[loadedDataIndex];
+        }
+    }
+
+    return integerArray;
+}
