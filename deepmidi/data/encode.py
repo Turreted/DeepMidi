@@ -3,12 +3,19 @@ import logging
 from deepmidi.definitions import *
 import os
 
-# consider using https://github.com/ahupp/python-magic
+def encode_midi_file(infile: str, outfile: str):
+    """
+    Python wrapper to call C++ binary midiEncoder, 
+    which serializes a midi file as a numpy array 
 
-BINARY = os.path.join(ROOT_DIR, "encoding/bin/encoder")
+    Parameters
+    ----------
+    infile
+        Input .midi file
+    outfile:
+        Output .npy file
+    """
 
-
-def encode(infile: str, outfile: str):
     instream = open(infile, 'rb').read()
     magic_bytes = instream[:4]
 
@@ -17,12 +24,11 @@ def encode(infile: str, outfile: str):
         logging.warning("File should have extension .midi or .mid")
 
     # validate midi file by checking magic bytes
-    if magic_bytes.decode('utf-8') != "MThd":
+    if "MThd" not in magic_bytes.decode("ISO-8859-1"):
         logging.error("Input file must be a midi file")
         return
-    
 
-    subprocess.run([BINARY, infile, outfile], shell=True, check=True)
-
-
-encode("deepmidi/data/test.midi", "test.npy")
+    try:
+        subprocess.run([ENCODER_BINARY, infile, outfile], check=True)
+    except subprocess.CalledProcessError as e:
+        logging.exception("Binary improperly envoked")
