@@ -12,16 +12,19 @@ project( DeepMidi )
 
 # files
 set(SRCS
-    src/MidiEncoder.cpp
-    src/MidiDecoder.cpp
-    src/decoder.cpp
-    src/encoder.cpp
+    ./src/MidiEncoder.cpp
+    ./src/MidiDecoder.cpp
+    ./src/decoder.cpp
+    ./src/encoder.cpp
 )
 
 set(HDRS
-    include/MidiEncoder.cpp
-    include/MidiDecoder.cpp
+    ./include/MidiEncoder.h
+    ./include/MidiDecoder.h
 )
+
+# set binary output directory
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 
 # include
 include_directories( ./include ./src ./libs/midifile/include ./libs/cnpy )
@@ -30,7 +33,7 @@ include_directories( ./include ./src ./libs/midifile/include ./libs/cnpy )
 add_library(MidiDecoder STATIC ./src/MidiDecoder.cpp)
 add_library(MidiEncoder STATIC ./src/MidiEncoder.cpp)
 
-# add main executable
+# add main executables
 add_executable( decoder ./src/decoder.cpp)
 add_executable( encoder ./src/encoder.cpp)
 
