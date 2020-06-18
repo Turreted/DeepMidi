@@ -171,6 +171,10 @@ cython_debug/
 *.app
 
 
+# application specific
 build/*
 dataset/*
 bin/*
+
+!bin/encoder
+!bin/decoder
