@@ -2,7 +2,7 @@
 cmake_minimum_required( VERSION 3.0 )
 
 # define c++ version
-set_property(TARGET tgt PROPERTY CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 # project name
 project( DeepMidi )
@@ -14,7 +14,8 @@ project( DeepMidi )
 set(SRCS
     src/MidiEncoder.cpp
     src/MidiDecoder.cpp
-    src/main.cpp
+    src/decoder.cpp
+    src/encoder.cpp
 )
 
 set(HDRS
@@ -30,15 +31,18 @@ add_library(MidiDecoder STATIC ./src/MidiDecoder.cpp)
 add_library(MidiEncoder STATIC ./src/MidiEncoder.cpp)
 
 # add main executable
-add_executable( main ./src/main)
+add_executable( decoder ./src/decoder.cpp)
+add_executable( encoder ./src/encoder.cpp)
 
 # link Public Libraries
 add_subdirectory( ./libs/midifile )
 target_link_libraries( MidiDecoder PUBLIC midifile )
+target_link_libraries( MidiEncoder PUBLIC midifile )
 
 add_subdirectory( ./libs/cnpy )
 target_link_libraries( MidiDecoder PUBLIC cnpy )
+target_link_libraries( MidiEncoder PUBLIC cnpy )
 
 # link static Libraries
-target_link_libraries( main MidiDecoder )
-target_link_libraries( main MidiEncoder )
+target_link_libraries( decoder MidiDecoder )
+target_link_libraries( encoder MidiEncoder )
